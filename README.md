@@ -125,7 +125,7 @@ This project gave me hands-on experience with:
 ## 👤 Author
 
 **[Your Name Here]**
-- GitHub: [@yourusername](https://github.com/yourusername)
+- GitHub: [@trillesgian29-cpu](https://github.com/trillesgian29-cpu)
 - Portfolio: [yourportfolio.com](https://yourportfolio.com)
 
 ---
