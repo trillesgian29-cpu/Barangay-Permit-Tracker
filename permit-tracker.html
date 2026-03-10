@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Barangay San Jose — Business Permit Tracker</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy2: #0f2040;
+    --blue: #1354c8;
+    --blue-light: #2d6ef0;
+    --gold: #f0a500;
+    --gold-light: #ffd04a;
+    --surface: #ffffff;
+    --surface2: #f4f6fb;
+    --border: #dde3f0;
+    --text: #0a1628;
+    --muted: #6a7898;
+    --green: #0f7c4f;
+    --green-light: #19b374;
+    --yellow: #c47d00;
+    --red: #b81c1c;
+    --red-light: #e53030;
+    --shadow-sm: 0 2px 8px rgba(10,22,40,.08);
+    --shadow: 0 8px 24px rgba(10,22,40,.12);
+    --shadow-lg: 0 20px 48px rgba(10,22,40,.18);
+    --radius: 12px;
+    --radius-lg: 18px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--surface2);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--navy);
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(19,84,200,.35) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 20%, rgba(240,165,0,.15) 0%, transparent 50%);
+    color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    box-shadow: 0 4px 24px rgba(0,0,0,.25);
+  }
+  .header-inner {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .seal {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, #f0a500, #ffd04a, #f0a500);
+    box-shadow: 0 0 0 3px rgba(255,255,255,.15), 0 6px 16px rgba(0,0,0,.3);
+    display: grid; place-items: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .brand-text h1 {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -.2px;
+    line-height: 1.2;
+  }
+  .brand-text p {
+    font-size: 12px;
+    color: rgba(255,255,255,.6);
+    margin-top: 2px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    appearance: none;
+    border: none;
+    border-radius: 9px;
+    padding: 9px 16px;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--gold); color: var(--navy); box-shadow: 0 4px 14px rgba(240,165,0,.35); }
+  .btn-primary:hover { background: var(--gold-light); box-shadow: 0 6px 18px rgba(240,165,0,.45); }
+  .btn-outline { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.3); }
+  .btn-outline:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.6); }
+  .btn-ghost { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
+  .btn-ghost:hover { background: var(--border); }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-success:hover { background: var(--green-light); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:hover { background: var(--red-light); }
+  .btn.sm { padding: 7px 12px; font-size: 12px; border-radius: 8px; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    background: var(--navy);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    z-index: 999;
+    transform: translateY(12px);
+    opacity: 0;
+    transition: all .25s ease;
+    pointer-events: none;
+    max-width: 320px;
+  }
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.success { border-left: 4px solid var(--green-light); }
+  #toast.error { border-left: 4px solid var(--red-light); }
+  #toast.info { border-left: 4px solid var(--blue-light); }
+
+  /* ── CONTAINER ── */
+  .container {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 24px 24px 60px;
+  }
+
+  /* ── STATS ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .stat {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1.5px solid var(--border);
+    transition: transform .2s, box-shadow .2s;
+    cursor: default;
+  }
+  .stat:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .stat-icon {
+    width: 50px; height: 50px;
+    border-radius: 14px;
+    display: grid; place-items: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .icon-green { background: linear-gradient(135deg, #0f7c4f, #19b374); }
+  .icon-yellow { background: linear-gradient(135deg, #c47d00, #f0a500); }
+  .icon-red { background: linear-gradient(135deg, #b81c1c, #e53030); }
+  .stat-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .stat-value { font-size: 28px; font-weight: 800; margin-top: 4px; line-height: 1; }
+
+  /* ── ALERTS ── */
+  .alerts {
+    background: #fffbf0;
+    border: 1.5px solid #f0a500;
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+  .alerts-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #7a5200;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #fef0c0;
+    color: #7a5200;
+    border: 1px solid #f0c840;
+  }
+  .chip.red { background: #fde8e8; color: #7a1010; border-color: #f0a0a0; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .search { position: relative; }
+  .search input {
+    width: 100%;
+    padding: 11px 14px 11px 40px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    box-shadow: var(--shadow-sm);
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search input:focus { border-color: var(--blue-light); box-shadow: 0 0 0 3px rgba(45,110,240,.12); }
+  .search-icon {
+    position: absolute;
+    left: 13px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+  select.filter {
+    padding: 11px 14px;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+    outline: none;
+    cursor: pointer;
+    min-width: 160px;
+  }
+
+  /* ── GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--border);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: transform .2s, box-shadow .2s;
+    animation: fadeUp .3s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .card-header h4 { font-size: 15px; font-weight: 800; line-height: 1.3; }
+  .badge {
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge.active { background: #e8f7f0; color: var(--green); border: 1.5px solid #b8e8d2; }
+  .badge.expiring { background: #fff7e0; color: var(--yellow); border: 1.5px solid #f0d880; }
+  .badge.expired { background: #fdeaea; color: var(--red); border: 1.5px solid #f0b8b8; }
+  .card-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .meta-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .meta-item b { color: var(--navy); font-weight: 700; display: block; margin-bottom: 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .3px; color: var(--muted); }
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 2px;
+  }
+  .days-left {
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted);
+  }
+  .days-left.warn { color: var(--yellow); }
+  .days-left.danger { color: var(--red); }
+  .card-actions { display: flex; gap: 8px; }
+
+  /* ── EMPTY ── */
+  .empty {
+    grid-column: 1 / -1;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1.5px dashed var(--border);
+    padding: 48px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+  .empty p { font-size: 15px; font-weight: 600; }
+  .empty small { font-size: 13px; }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(8,18,36,.6);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    display: none;
+    place-items: center;
+    padding: 20px;
+  }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 660px;
+    overflow: hidden;
+    transform: translateY(16px) scale(.97);
+    opacity: 0;
+    transition: all .22s cubic-bezier(.34,1.2,.64,1);
+  }
+  .modal.show { transform: translateY(0) scale(1); opacity: 1; }
+  .modal-header {
+    background: var(--navy);
+    background-image: radial-gradient(ellipse at 80% 50%, rgba(19,84,200,.4) 0%, transparent 60%);
+    color: #fff;
+    padding: 18px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header h3 { font-size: 17px; font-weight: 800; }
+  .modal-close {
+    background: rgba(255,255,255,.15);
+    border: none;
+    color: #fff;
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    font-size: 18px;
+    cursor: pointer;
+    display: grid; place-items: center;
+    transition: background .15s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,.25); }
+  .modal-body { padding: 22px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .form-grid .full { grid-column: 1 / -1; }
+  .field label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; display: block; margin-bottom: 6px; }
+  .field input, .field select {
+    width: 100%;
+    padding: 10px 13px;
+    border-radius: 9px;
+    border: 1.5px solid var(--border);
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    background: var(--surface);
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--blue-light);
+    box-shadow: 0 0 0 3px rgba(45,110,240,.12);
+  }
+  .field input.error { border-color: var(--red); }
+  .field .err-msg { font-size: 11px; color: var(--red); margin-top: 4px; display: none; }
+  .field input.error + .err-msg { display: block; }
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 14px 22px;
+    border-top: 1.5px solid var(--border);
+    background: var(--surface2);
+  }
+
+  /* ── CONFIRM DIALOG ── */
+  .confirm-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(8,18,36,.5);
+    backdrop-filter: blur(3px);
+    z-index: 200;
+    display: none;
+    place-items: center;
+  }
+  .confirm-box {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    border-top: 5px solid var(--red);
+  }
+  .confirm-box .ci { font-size: 36px; margin-bottom: 12px; }
+  .confirm-box h4 { font-size: 17px; font-weight: 800; margin-bottom: 8px; }
+  .confirm-box p { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+  .confirm-actions { display: flex; gap: 10px; justify-content: center; }
+
+  /* ── EXCEL STATUS BAR ── */
+  .excel-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--navy2);
+    color: rgba(255,255,255,.75);
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 7px 24px;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .excel-status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green-light);
+    flex-shrink: 0;
+  }
+  .excel-status-dot.saving { background: var(--gold); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .excel-file-name { font-weight: 600; color: #fff; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1024px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .stats { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: 1fr; }
+    .toolbar { grid-template-columns: 1fr 1fr; }
+    .toolbar .search { grid-column: 1 / -1; }
+    .form-grid { grid-template-columns: 1fr; }
+    .header-inner { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="seal">🏛️</div>
+      <div class="brand-text">
+        <h1>Barangay San Jose — Polangui, Albay</h1>
+        <p>BUSINESS PERMIT TRACKER</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-primary" id="btnAdd">＋ New Permit</button>
+      <button class="btn btn-outline" id="btnImportExcel" title="Load permits from an Excel file">📂 Load Excel</button>
+      <button class="btn btn-outline" id="btnExportExcel" title="Download current permits as Excel">⬇ Save Excel</button>
+      <button class="btn btn-outline" id="btnExportCSV">📋 Export CSV</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Stats -->
+  <section class="stats" aria-label="Dashboard summary">
+    <div class="stat">
+      <div class="stat-icon icon-green">✅</div>
+      <div>
+        <div class="stat-label">Active</div>
+        <div class="stat-value" id="statActive">0</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon icon-yellow">⚠️</div>
+      <div>
+        <div class="stat-label">Expiring ≤ 30 days</div>
+        <div class="stat-value" id="statSoon">0</div>
+      </div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon icon-red">❌</div>
+      <div>
+        <div class="stat-label">Expired</div>
+        <div class="stat-value" id="statExpired">0</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Alerts -->
+  <section class="alerts" id="alerts" style="display:none" aria-live="polite">
+    <div class="alerts-title">🔔 Permits Needing Attention</div>
+    <div class="chips" id="alertList"></div>
+  </section>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="search">
+      <span class="search-icon">🔎</span>
+      <input id="searchInput" type="search" placeholder="Search by business name or owner…" />
+    </div>
+    <select id="statusFilter" class="filter" aria-label="Filter by status">
+      <option value="all">All Statuses</option>
+      <option value="active">Active</option>
+      <option value="expiring">Expiring Soon</option>
+      <option value="expired">Expired</option>
+    </select>
+    <select id="typeFilter" class="filter" aria-label="Filter by type">
+      <option value="all">All Types</option>
+    </select>
+    <button class="btn btn-ghost" id="btnClear">✕ Clear</button>
+  </div>
+
+  <!-- Grid -->
+  <section id="grid" class="grid" aria-live="polite"></section>
+
+</main>
+
+<!-- Excel status bar -->
+<div class="excel-bar">
+  <div class="excel-status-dot" id="excelDot"></div>
+  <span id="excelStatusText">Ready</span>
+  <span style="margin-left:auto;opacity:.5">Auto-saves to Excel on every change</span>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Add Permit</h3>
+      <button class="modal-close" id="btnModalClose" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field">
+          <label for="fBusinessName">Business Name *</label>
+          <input id="fBusinessName" placeholder="e.g., Santos Sari-Sari Store" />
+          <div class="err-msg">This field is required.</div>
+        </div>
+        <div class="field">
+          <label for="fOwnerName">Owner Name *</label>
+          <input id="fOwnerName" placeholder="e.g., Maria Santos" />
+          <div class="err-msg">This field is required.</div>
+        </div>
+        <div class="field">
+          <label for="fBusinessType">Business Type *</label>
+          <input id="fBusinessType" list="typeList" placeholder="e.g., Sari-sari, Carinderia…" />
+          <datalist id="typeList"></datalist>
+          <div class="err-msg">This field is required.</div>
+        </div>
+        <div class="field">
+          <label for="fPermitNumber">Permit Number *</label>
+          <input id="fPermitNumber" placeholder="e.g., SJ-2026-001" />
+          <div class="err-msg">This field is required.</div>
+        </div>
+        <div class="field full">
+          <label for="fAddress">Address *</label>
+          <input id="fAddress" placeholder="Purok / Street, Barangay San Jose, Polangui" />
+          <div class="err-msg">This field is required.</div>
+        </div>
+        <div class="field">
+          <label for="fIssueDate">Issue Date *</label>
+          <input id="fIssueDate" type="date" />
+          <div class="err-msg">This field is required.</div>
+        </div>
+        <div class="field">
+          <label for="fExpiryDate">Expiry Date *</label>
+          <input id="fExpiryDate" type="date" />
+          <div class="err-msg">Expiry must be after issue date.</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btnCancel">Cancel</button>
+      <button class="btn btn-success" id="btnSave">💾 Save Permit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Dialog -->
+<div class="confirm-backdrop" id="confirmBackdrop">
+  <div class="confirm-box">
+    <div class="ci">🗑️</div>
+    <h4>Delete Permit?</h4>
+    <p id="confirmMsg">This cannot be undone.</p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="btnConfirmNo">Cancel</button>
+      <button class="btn btn-danger" id="btnConfirmYes">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input for Excel import -->
+<input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" />
+
+<script>
+/* ============================================================
+   CONSTANTS & STORAGE
+   ============================================================ */
+const STORAGE_KEY = 'brgy-sanjose-permits-v2';
+const EXCEL_FILE_NAME = 'Barangay_SanJose_Permits.xlsx';
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function uid() {
+  return 'P' + Math.random().toString(36).slice(2, 9) + Date.now().toString(36).slice(-5);
+}
+function isoOffset(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+function daysUntil(iso) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const t = new Date(iso + 'T00:00:00'); t.setHours(0,0,0,0);
+  return Math.round((t - today) / 86400000);
+}
+function statusOf(iso) {
+  const d = daysUntil(iso);
+  if (d < 0) return 'expired';
+  if (d <= 30) return 'expiring';
+  return 'active';
+}
+function formatDate(iso) {
+  if (!iso) return '—';
+  return new Date(iso + 'T00:00:00').toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' });
+}
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ============================================================
+   SAMPLE DATA
+   ============================================================ */
+const SAMPLES = [
+  { id: uid(), businessName:'San Jose Sari-Sari Store', ownerName:'Maria D. Santos', businessType:'Retail — Sari-sari', address:'Purok 2, Barangay San Jose, Polangui', permitNumber:'SJ-2026-001', issueDate: isoOffset(-300), expiryDate: isoOffset(60) },
+  { id: uid(), businessName:'Bicol Eats Carinderia', ownerName:'Jose L. Ramirez', businessType:'Food — Carinderia', address:'Purok 5, Barangay San Jose, Polangui', permitNumber:'SJ-2026-002', issueDate: isoOffset(-365), expiryDate: isoOffset(10) },
+  { id: uid(), businessName:'Albay Auto Repair', ownerName:'Rogelio P. Cruz', businessType:'Services — Auto Repair', address:'Purok 1, Barangay San Jose, Polangui', permitNumber:'SJ-2026-003', issueDate: isoOffset(-400), expiryDate: isoOffset(-5) },
+  { id: uid(), businessName:'Green Fields Farm Supply', ownerName:'Luzviminda R. Perez', businessType:'Retail — Farm Supply', address:'Purok 3, Barangay San Jose, Polangui', permitNumber:'SJ-2026-004', issueDate: isoOffset(-200), expiryDate: isoOffset(200) },
+  { id: uid(), businessName:'Polangui Tech Solutions', ownerName:'Arvin T. Dela Cruz', businessType:'Services — IT', address:'Purok 4, Barangay San Jose, Polangui', permitNumber:'SJ-2026-005', issueDate: isoOffset(-250), expiryDate: isoOffset(25) },
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let permits = [];
+let editingId = null;
+let deleteTargetId = null;
+let autoSaveTimer = null;
+
+function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch(e) {}
+  return null;
+}
+function saveToStorage() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(permits)); } catch(e) {}
+}
+
+/* ============================================================
+   EXCEL AUTO-SAVE
+   ============================================================ */
+function triggerAutoSave() {
+  clearTimeout(autoSaveTimer);
+  setExcelStatus('saving', 'Saving…');
+  autoSaveTimer = setTimeout(() => {
+    saveToStorage();
+    downloadExcel(false); // silent = no toast
+    setExcelStatus('ready', `Auto-saved — ${permits.length} record(s) — ${new Date().toLocaleTimeString('en-PH')}`);
+  }, 1200);
+}
+
+function setExcelStatus(state, msg) {
+  const dot = document.getElementById('excelDot');
+  const txt = document.getElementById('excelStatusText');
+  dot.className = 'excel-status-dot' + (state === 'saving' ? ' saving' : '');
+  txt.textContent = msg;
+}
+
+function downloadExcel(showToast = true) {
+  const ws_data = [
+    ['ID','Business Name','Owner Name','Business Type','Address','Permit Number','Issue Date','Expiry Date','Status'],
+    ...permits.map(p => [
+      p.id, p.businessName, p.ownerName, p.businessType,
+      p.address, p.permitNumber, p.issueDate, p.expiryDate,
+      statusOf(p.expiryDate).toUpperCase()
+    ])
+  ];
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+  // Column widths
+  ws['!cols'] = [
+    {wch:14},{wch:30},{wch:24},{wch:22},{wch:36},{wch:16},{wch:14},{wch:14},{wch:12}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, 'Permits');
+
+  // Summary sheet
+  const counts = {active:0, expiring:0, expired:0};
+  permits.forEach(p => counts[statusOf(p.expiryDate)]++);
+  const ws2_data = [
+    ['Summary',''],
+    ['Total Permits', permits.length],
+    ['Active', counts.active],
+    ['Expiring (≤30 days)', counts.expiring],
+    ['Expired', counts.expired],
+    ['Generated', new Date().toLocaleString('en-PH')]
+  ];
+  const ws2 = XLSX.utils.aoa_to_sheet(ws2_data);
+  ws2['!cols'] = [{wch:24},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+
+  XLSX.writeFile(wb, EXCEL_FILE_NAME);
+  if (showToast) toast('Excel file downloaded!', 'success');
+}
+
+function importExcel(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'binary' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
+      if (rows.length < 2) { toast('No data found in Excel file.', 'error'); return; }
+
+      const imported = [];
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r[1]) continue; // skip empty rows
+        imported.push({
+          id: r[0] || uid(),
+          businessName: String(r[1] || '').trim(),
+          ownerName: String(r[2] || '').trim(),
+          businessType: String(r[3] || '').trim(),
+          address: String(r[4] || '').trim(),
+          permitNumber: String(r[5] || '').trim(),
+          issueDate: excelDateToISO(r[6]),
+          expiryDate: excelDateToISO(r[7]),
+        });
+      }
+      if (!imported.length) { toast('No valid records found.', 'error'); return; }
+      permits = imported;
+      saveToStorage();
+      render();
+      populateTypeFilter();
+      toast(`Loaded ${imported.length} permits from Excel.`, 'success');
+      setExcelStatus('ready', `Loaded from Excel — ${permits.length} record(s)`);
+    } catch(err) {
+      toast('Failed to read Excel file. Please check the format.', 'error');
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+function excelDateToISO(val) {
+  if (!val) return '';
+  if (typeof val === 'number') {
+    // Excel serial date
+    const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+    return d.toISOString().slice(0, 10);
+  }
+  const s = String(val).trim();
+  // Already ISO-like
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  // Try parsing
+  const d = new Date(s);
+  if (!isNaN(d)) return d.toISOString().slice(0, 10);
+  return '';
+}
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+function render() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const sf = document.getElementById('statusFilter').value;
+  const tf = document.getElementById('typeFilter').value;
+
+  const filtered = permits.filter(p => {
+    const matchText = p.businessName.toLowerCase().includes(q) ||
+                      p.ownerName.toLowerCase().includes(q) ||
+                      p.permitNumber.toLowerCase().includes(q);
+    const matchStatus = sf === 'all' || statusOf(p.expiryDate) === sf;
+    const matchType = tf === 'all' || p.businessType === tf;
+    return matchText && matchStatus && matchType;
+  });
+
+  // Stats
+  const counts = {active:0, expiring:0, expired:0};
+  permits.forEach(p => counts[statusOf(p.expiryDate)]++);
+  document.getElementById('statActive').textContent = counts.active;
+  document.getElementById('statSoon').textContent = counts.expiring;
+  document.getElementById('statExpired').textContent = counts.expired;
+
+  // Alerts
+  const urgent = permits
+    .filter(p => statusOf(p.expiryDate) !== 'active')
+    .sort((a,b) => daysUntil(a.expiryDate) - daysUntil(b.expiryDate));
+  const alertsEl = document.getElementById('alerts');
+  const alertListEl = document.getElementById('alertList');
+  if (urgent.length) {
+    alertsEl.style.display = '';
+    alertListEl.innerHTML = urgent.map(p => {
+      const d = daysUntil(p.expiryDate);
+      const label = d < 0
+        ? `Expired ${Math.abs(d)}d ago: ${p.businessName}`
+        : `Expiring in ${d}d: ${p.businessName}`;
+      return `<span class="chip${d < 0 ? ' red' : ''}">${esc(label)}</span>`;
+    }).join('');
+  } else {
+    alertsEl.style.display = 'none';
+  }
+
+  // Cards
+  const grid = document.getElementById('grid');
+  if (!filtered.length) {
+    grid.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <p>No permits found</p>
+        <small>Try adjusting your search or filters.</small>
+      </div>`;
+    return;
+  }
+
+  const sorted = [...filtered].sort((a,b) => a.businessName.localeCompare(b.businessName));
+  grid.innerHTML = sorted.map(p => cardHTML(p)).join('');
+}
+
+function cardHTML(p) {
+  const d = daysUntil(p.expiryDate);
+  const st = statusOf(p.expiryDate);
+  const daysClass = st === 'expired' ? 'danger' : st === 'expiring' ? 'warn' : '';
+  const daysLabel = d < 0
+    ? `⚠ ${Math.abs(d)} day(s) past expiry`
+    : `⏳ ${d} day(s) remaining`;
+  return `
+  <article class="card" aria-label="${esc(p.businessName)}">
+    <div class="card-header">
+      <h4>${esc(p.businessName)}</h4>
+      <span class="badge ${st}">${st.toUpperCase()}</span>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item"><b>Owner</b>${esc(p.ownerName)}</div>
+      <div class="meta-item"><b>Type</b>${esc(p.businessType)}</div>
+      <div class="meta-item"><b>Permit #</b>${esc(p.permitNumber)}</div>
+      <div class="meta-item"><b>Address</b>${esc(p.address)}</div>
+      <div class="meta-item"><b>Issued</b>${formatDate(p.issueDate)}</div>
+      <div class="meta-item"><b>Expires</b>${formatDate(p.expiryDate)}</div>
+    </div>
+    <div class="card-footer">
+      <span class="days-left ${daysClass}">${daysLabel}</span>
+      <div class="card-actions">
+        <button class="btn sm btn-ghost" onclick="openEdit('${p.id}')">✏ Edit</button>
+        <button class="btn sm btn-danger" onclick="confirmDelete('${p.id}')">🗑 Delete</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+/* ============================================================
+   TYPE FILTER POPULATION
+   ============================================================ */
+function populateTypeFilter() {
+  const types = [...new Set(permits.map(p => p.businessType).filter(Boolean))].sort();
+  const sel = document.getElementById('typeFilter');
+  const cur = sel.value;
+  sel.innerHTML = `<option value="all">All Types</option>` +
+    types.map(t => `<option value="${esc(t)}" ${t === cur ? 'selected' : ''}>${esc(t)}</option>`).join('');
+  // Also update datalist
+  document.getElementById('typeList').innerHTML =
+    types.map(t => `<option value="${esc(t)}">`).join('');
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+function openModal() {
+  const bd = document.getElementById('modalBackdrop');
+  const m  = document.getElementById('modal');
+  bd.style.display = 'grid';
+  bd.setAttribute('aria-hidden','false');
+  setTimeout(() => m.classList.add('show'), 10);
+  document.getElementById('fBusinessName').focus();
+}
+function closeModal() {
+  const bd = document.getElementById('modalBackdrop');
+  const m  = document.getElementById('modal');
+  m.classList.remove('show');
+  bd.setAttribute('aria-hidden','true');
+  setTimeout(() => { bd.style.display = 'none'; }, 220);
+  clearFormErrors();
+  editingId = null;
+}
+function clearFormErrors() {
+  document.querySelectorAll('.field input').forEach(el => el.classList.remove('error'));
+}
+function openAdd() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = 'Add New Permit';
+  ['fBusinessName','fOwnerName','fBusinessType','fAddress','fPermitNumber'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('fIssueDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('fExpiryDate').value = isoOffset(365);
+  openModal();
+}
+function openEdit(id) {
+  const p = permits.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Permit';
+  document.getElementById('fBusinessName').value = p.businessName;
+  document.getElementById('fOwnerName').value = p.ownerName;
+  document.getElementById('fBusinessType').value = p.businessType;
+  document.getElementById('fAddress').value = p.address;
+  document.getElementById('fPermitNumber').value = p.permitNumber;
+  document.getElementById('fIssueDate').value = p.issueDate;
+  document.getElementById('fExpiryDate').value = p.expiryDate;
+  openModal();
+}
+
+function validateAndSave() {
+  clearFormErrors();
+  const get = id => document.getElementById(id).value.trim();
+  const fields = {
+    fBusinessName: get('fBusinessName'),
+    fOwnerName:    get('fOwnerName'),
+    fBusinessType: get('fBusinessType'),
+    fAddress:      get('fAddress'),
+    fPermitNumber: get('fPermitNumber'),
+    fIssueDate:    get('fIssueDate'),
+    fExpiryDate:   get('fExpiryDate'),
+  };
+
+  let valid = true;
+  ['fBusinessName','fOwnerName','fBusinessType','fAddress','fPermitNumber','fIssueDate','fExpiryDate'].forEach(id => {
+    if (!fields[id]) {
+      document.getElementById(id).classList.add('error');
+      valid = false;
+    }
+  });
+  if (fields.fIssueDate && fields.fExpiryDate && fields.fExpiryDate <= fields.fIssueDate) {
+    document.getElementById('fExpiryDate').classList.add('error');
+    valid = false;
+  }
+  if (!valid) { toast('Please fill in all required fields correctly.', 'error'); return; }
+
+  // Duplicate permit number check
+  const dupNum = permits.find(p => p.permitNumber === fields.fPermitNumber && p.id !== editingId);
+  if (dupNum) {
+    document.getElementById('fPermitNumber').classList.add('error');
+    toast('Permit number already exists.', 'error');
+    return;
+  }
+
+  if (editingId) {
+    const idx = permits.findIndex(p => p.id === editingId);
+    if (idx !== -1) {
+      permits[idx] = { ...permits[idx], businessName: fields.fBusinessName, ownerName: fields.fOwnerName,
+        businessType: fields.fBusinessType, address: fields.fAddress, permitNumber: fields.fPermitNumber,
+        issueDate: fields.fIssueDate, expiryDate: fields.fExpiryDate };
+    }
+    toast('Permit updated!', 'success');
+  } else {
+    permits.push({ id: uid(), businessName: fields.fBusinessName, ownerName: fields.fOwnerName,
+      businessType: fields.fBusinessType, address: fields.fAddress, permitNumber: fields.fPermitNumber,
+      issueDate: fields.fIssueDate, expiryDate: fields.fExpiryDate });
+    toast('Permit added!', 'success');
+  }
+
+  closeModal();
+  render();
+  populateTypeFilter();
+  triggerAutoSave();
+}
+
+/* ============================================================
+   DELETE
+   ============================================================ */
+function confirmDelete(id) {
+  const p = permits.find(x => x.id === id);
+  if (!p) return;
+  deleteTargetId = id;
+  document.getElementById('confirmMsg').textContent =
+    `Delete "${p.businessName}" (${p.permitNumber})? This cannot be undone.`;
+  const bd = document.getElementById('confirmBackdrop');
+  bd.style.display = 'grid';
+}
+function closeConfirm() {
+  document.getElementById('confirmBackdrop').style.display = 'none';
+  deleteTargetId = null;
+}
+function doDelete() {
+  if (!deleteTargetId) return;
+  permits = permits.filter(p => p.id !== deleteTargetId);
+  closeConfirm();
+  render();
+  populateTypeFilter();
+  triggerAutoSave();
+  toast('Permit deleted.', 'info');
+}
+
+/* ============================================================
+   CSV EXPORT
+   ============================================================ */
+function exportCSV() {
+  const header = ['ID','Business Name','Owner Name','Business Type','Address','Permit Number','Issue Date','Expiry Date','Status'];
+  const rows = permits.map(p => [
+    p.id, p.businessName, p.ownerName, p.businessType,
+    p.address, p.permitNumber, p.issueDate, p.expiryDate,
+    statusOf(p.expiryDate).toUpperCase()
+  ]);
+  const csv = [header, ...rows]
+    .map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'Barangay_SanJose_Permits.csv';
+  a.click();
+  toast('CSV exported!', 'success');
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastTimer = null;
+function toast(msg, type = 'info') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show ${type}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+
+/* ============================================================
+   INIT & EVENT LISTENERS
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Load data
+  const stored = loadFromStorage();
+  permits = stored ?? SAMPLES.slice();
+  if (!stored) saveToStorage();
+
+  render();
+  populateTypeFilter();
+  setExcelStatus('ready', `${permits.length} permit(s) loaded`);
+
+  // Toolbar
+  document.getElementById('searchInput').addEventListener('input', render);
+  document.getElementById('statusFilter').addEventListener('change', render);
+  document.getElementById('typeFilter').addEventListener('change', render);
+  document.getElementById('btnClear').addEventListener('click', () => {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = 'all';
+    document.getElementById('typeFilter').value = 'all';
+    render();
+  });
+
+  // Header buttons
+  document.getElementById('btnAdd').addEventListener('click', openAdd);
+  document.getElementById('btnExportCSV').addEventListener('click', exportCSV);
+  document.getElementById('btnExportExcel').addEventListener('click', () => downloadExcel(true));
+  document.getElementById('btnImportExcel').addEventListener('click', () => {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('fileInput').click();
+  });
+  document.getElementById('fileInput').addEventListener('change', e => {
+    if (e.target.files[0]) importExcel(e.target.files[0]);
+  });
+
+  // Modal
+  document.getElementById('btnSave').addEventListener('click', validateAndSave);
+  document.getElementById('btnCancel').addEventListener('click', closeModal);
+  document.getElementById('btnModalClose').addEventListener('click', closeModal);
+  document.getElementById('modalBackdrop').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalBackdrop')) closeModal();
+  });
+
+  // Confirm delete
+  document.getElementById('btnConfirmYes').addEventListener('click', doDelete);
+  document.getElementById('btnConfirmNo').addEventListener('click', closeConfirm);
+
+  // Keyboard
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeConfirm(); }
+  });
+});
+</script>
+
+<!-- Toast element -->
+<div id="toast" role="alert" aria-live="assertive"></div>
+
+</body>
+</html>
