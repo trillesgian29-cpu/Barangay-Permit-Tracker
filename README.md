@@ -1,6 +1,6 @@
-# 🏛️ Barangay San Jose — Business Permit Tracker
+# 🏛️ Barangay Tinapian — Business Permit Tracker
 
-> A fully offline, single-file web application for managing business permits in **Barangay San Jose, Polangui, Albay**. Built with pure HTML, CSS, and JavaScript — no internet connection or server required.
+> A fully offline, single-file web application for managing business permits in **Barangay Tinapian, Manito, Albay**. Built with pure HTML, CSS, and JavaScript — no internet connection or server required.
 
 ---
 
@@ -34,13 +34,13 @@ This project was built as part of my personal portfolio to demonstrate practical
 
 ## 🖥️ Screenshots
 
-> _Add screenshots here after uploading. Recommended: dashboard view, a permit card, and the add permit form._
-
+- [Desktop View](images)  
+- [Phone View](images/)  
 ---
 
 ## 🚀 How to Use
 
-1. **Download** the `permit-tracker.html` file from this repository
+1. **Download** the [permit-tracker.html](permit-tracker.html) file from this repository
 2. **Open** it in any modern web browser (Chrome, Firefox, Edge, Safari)
 3. The app loads with sample data automatically on first use
 4. Click **＋ New Permit** to add your first real permit
@@ -55,9 +55,15 @@ This project was built as part of my personal portfolio to demonstrate practical
 
 | File | Description |
 |---|---|
-| `permit-tracker.html` | The complete application — single HTML file, no dependencies to install |
-| `Barangay_SanJose_Permits_99.xlsx` | Sample dataset with 99 realistic business permit records for testing |
-| `README.md` | This file |
+| [permit-tracker.html](permit-tracker.html) | The complete application — single HTML file, no dependencies to install |
+| [Barangay_Tinapian_Permits_99.xlsx](Barangay_Tinapian_Permits_99.xlsx) | Synthetic test dataset with 99 business permit records |
+| [README.md](README.md) | This file |
+
+---
+
+## 🖼️ Preview Screenshot
+![Dashboard View](images)
+
 
 ---
 
@@ -78,15 +84,16 @@ This project was built as part of my personal portfolio to demonstrate practical
 
 ## 📊 Sample Dataset
 
-The repository includes **`Barangay_SanJose_Permits_99.xlsx`** — a realistic test dataset with 99 sample business permits featuring:
+The repository includes **`Barangay_Tinapian_Permits_99.xlsx`** — a **synthetic test dataset** with 99 sample business permits.  
+⚠️ **Note:** This dataset is for testing and demonstration purposes only. It does not represent actual barangay records.
 
-- Authentic Filipino business names (Sari-sari stores, Carinderia, Bakeries, Hardware stores, etc.)
+Features of the dataset:
+- Authentic-style Filipino business names (Sari-sari stores, Carinderia, Bakeries, Hardware stores, etc.)
 - Realistic Filipino owner names with middle initials
-- Purok and street addresses within Barangay San Jose, Polangui, Albay
+- Purok and street addresses within Barangay Tinapian, Manito, Albay
 - Mixed permit statuses — Active, Expiring, and Expired records
-- Permit numbers in the format `SJ-YYYY-###`
-
-To load it into the app, click **📂 Load Excel** and select the file.
+- Permit numbers in the format `TP-YYYY-###`
+To load it into the app, click [📂 Load Excel](permit-tracker.html) and select the file.
 
 ---
 
@@ -129,5 +136,5 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-> 💬 *Built to serve the community of Barangay San Jose, Polangui, Albay — and as a demonstration of what simple web technology can do for local governance.*# Barangay-Permit-Tracker
+> 💬 *Built to serve the community of Barangay Tinapian, Manito, Albay — and as a demonstration of what simple web technology can do for local governance. Dataset included is for testing only.*
 This project demonstrates how AI applications can be applied to community governance, making record management more transparent, organized, and scalable.
