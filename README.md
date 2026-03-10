@@ -93,7 +93,7 @@ Features of the dataset:
 - Purok and street addresses within Barangay Tinapian, Manito, Albay
 - Mixed permit statuses — Active, Expiring, and Expired records
 - Permit numbers in the format `TP-YYYY-###`
-To load it into the app, click [📂 Load Excel](permit-tracker.html) and select the file.
+To load it into the app, click [📂 Load Excel](Barangay_SanJose_Permits_99.xlsx) and select the file.
 
 ---
 
@@ -126,7 +126,7 @@ This project gave me hands-on experience with:
 
 **[Your Name Here]**
 - GitHub: [@trillesgian29-cpu](https://github.com/trillesgian29-cpu)
-- Portfolio: [yourportfolio.com](https://yourportfolio.com)
+- Portfolio: [yourportfolio.com](https://github.com/trillesgian29-cpu/MyyPortfolio.git)
 
 ---
 
