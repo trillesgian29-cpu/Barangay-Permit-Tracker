@@ -126,7 +126,7 @@ This project gave me hands-on experience with:
 
 **[Your Name Here]**
 - GitHub: [@trillesgian29-cpu](https://github.com/trillesgian29-cpu)
-- Portfolio: [yourportfolio.com](https://github.com/trillesgian29-cpu/MyyPortfolio.git)
+- Portfolio: [yourportfolio.com](https://trillesgian29-cpu.github.io/MyyPortfolio/)
 
 ---
 
